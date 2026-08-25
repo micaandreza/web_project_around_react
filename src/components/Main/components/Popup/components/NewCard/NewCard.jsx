@@ -1,10 +1,23 @@
-export default function NewCard() {
+export default function NewCard({ onAddPlaceSubmit }) {
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const form = event.target;
+
+    const name = form.elements["card-name"].value;
+    const link = form.elements.link.value;
+
+    onAddPlaceSubmit({name, link});
+  }
+
   return (
     <form
       className="popup__form"
       name="card-form"
       id="new-card-form"
       noValidate
+      onSubmit={handleSubmit}
     >
       <label className="popup__field">
         <input
@@ -19,6 +32,7 @@ export default function NewCard() {
         />
         <span className="popup__error" id="card-name-error"></span>
       </label>
+
       <label className="popup__field">
         <input
           className="popup__input popup__input_type_url"
@@ -37,4 +51,3 @@ export default function NewCard() {
     </form>
   );
 }
-

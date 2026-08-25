@@ -1,8 +1,7 @@
 
 
-import { useState,useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import CurrentUserContext from "../../contexts/CurrentUserContext.js";
-import api from "../../utils/api.js";
 import NewCard from "./components/Popup/components/NewCard/NewCard.jsx";
 import EditAvatar from "./components/Popup/components/EditAvatar/EditAvatar.jsx";
 import EditProfile from "./components/Popup/components/EditProfile/EditProfile.jsx";
@@ -11,43 +10,19 @@ import Card from "./components/Card/Card.jsx";
 import ImagePopup from "./components/Popup/components/ImagePopup/ImagePopup.jsx";
 
 
-export default function Main() {
-  const [popup, setPopup] = useState(null);
+export default function Main({popup, 
+  onOpenPopup, 
+  onClosePopup,
+ cards,
+ onCardLike,
+ onCardDelete,
+onAddPlaceSubmit}) {
   const [selectedCard, setSelectedCard] = useState(null);
-  const [cards, setCards] = useState([]);
-  
-  const currentUser = useContext(CurrentUserContext);
-
-  async function handleCardLike(card) {
-    
-    const isLiked = card.isLiked;
-    
-    await api.changeLikeCardStatus(card._id, !isLiked).then((newCard) => {
-        setCards((state) => state.map((currentCard) => currentCard._id === card._id ? newCard : currentCard));
-    }).catch((error) => console.error(error));
-}
-async function handleCardDelete(card) {
-  await api.deleteCard(card._id)
-    .then(() => {
-      setCards((state) =>
-        state.filter((currentCard) => currentCard._id !== card._id)
-      );
-    })
-    .catch((error) => console.error(error));
-}
-  useEffect(() => {
-    api.getCardList()
-    .then((data) => {
-      setCards(data);
-    })
-      .catch((error) => {
-        console.error(error);
-      });
-    },[]);
+  const {currentUser} = useContext(CurrentUserContext);
 
   const newCardPopup = {
     title: "Novo cartão",
-    children: <NewCard />,
+    children: <NewCard onAddPlaceSubmit={onAddPlaceSubmit}/>,
   };
 
   const editProfilePopup = {
@@ -60,14 +35,6 @@ async function handleCardDelete(card) {
     children: <EditAvatar />,
   };
 
-  function handleOpenPopup(popup) {
-    setPopup(popup);
-  }
-
-  function handleClosePopup() {
-    setPopup(null);
-  }
-
   function handleCardClick(card) {
     setSelectedCard(card);
   }
@@ -79,7 +46,7 @@ async function handleCardDelete(card) {
           className="profile__image"
           src={currentUser.avatar}
           alt="Avatar"
-          onClick={() => handleOpenPopup(editAvatarPopup)}
+          onClick={() => onOpenPopup(editAvatarPopup)}
         />
 
         <div className="profile__info">
@@ -89,7 +56,7 @@ async function handleCardDelete(card) {
             aria-label="Editar perfil"
             className="profile__edit-button"
             type="button"
-            onClick={() => handleOpenPopup(editProfilePopup)}
+            onClick={() => onOpenPopup(editProfilePopup)}
           />
 
           <p className="profile__description">{currentUser.about}</p>
@@ -99,7 +66,7 @@ async function handleCardDelete(card) {
           aria-label="Adicionar cartão"
           className="profile__add-button"
           type="button"
-          onClick={() => handleOpenPopup(newCardPopup)}
+          onClick={() => onOpenPopup(newCardPopup)}
         />
       </section>
 
@@ -110,7 +77,8 @@ async function handleCardDelete(card) {
               key={card._id}
               card={card}
               onCardClick={handleCardClick}
-              onCardLike = {handleCardLike}
+              onCardLike = {onCardLike}
+              onCardDelete = {onCardDelete}
             />
           ))}
         </ul>
@@ -118,7 +86,7 @@ async function handleCardDelete(card) {
 
       {popup && (
         <Popup
-          onClose={handleClosePopup}
+          onClose={onClosePopup}
           title={popup.title}
         >
           {popup.children}
